@@ -1,0 +1,13 @@
+# Segredos
+.env
+
+# Build do Java (se rodar o Maven fora do Docker)
+api/target/
+api/.mvn/wrapper/maven-wrapper.jar
+
+# IDEs e sistema
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

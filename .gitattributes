@@ -1,0 +1,7 @@
+# Scripts e arquivos de configuracao sempre com fim de linha Linux (LF),
+# mesmo commitando pelo Windows. Sem isso o bash da VM quebra.
+*.sh            text eol=lf
+*.yaml          text eol=lf
+*.yml           text eol=lf
+Dockerfile      text eol=lf
+.env.example    text eol=lf
