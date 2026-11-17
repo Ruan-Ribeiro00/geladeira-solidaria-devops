@@ -1,0 +1,73 @@
+# =====================================================================
+# Geladeira Solidaria Inteligente - API + PostgreSQL
+# Global Solution 2026/2 - CitizenTech - DevOps Tools & Cloud Computing
+# =====================================================================
+# Subir:    docker compose up -d --build
+# Ver:      docker compose ps   |   docker compose logs -f api
+# Parar:    docker compose down          (os dados ficam no volume)
+# Apagar:   docker compose down -v       (apaga tambem o banco)
+# =====================================================================
+
+name: geladeira-solidaria
+
+services:
+
+  # ---------------- Banco de dados ----------------
+  db:
+    image: postgres:16-alpine
+    container_name: geladeira-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: America/Sao_Paulo
+      PGTZ: America/Sao_Paulo
+    volumes:
+      # Volume nomeado: os dados sobrevivem a "docker compose down"
+      - geladeira-dados:/var/lib/postgresql/data
+    ports:
+      # So acessivel de dentro da propria VM (nao fica aberto na internet)
+      - "127.0.0.1:5432:5432"
+    networks:
+      - geladeira-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- API Java ----------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: geladeira-solidaria-api:1.0
+    container_name: geladeira-api
+    restart: unless-stopped
+    environment:
+      # "db" e o nome do servico do banco: o Docker resolve pela rede geladeira-net
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-120}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+    ports:
+      # porta da VM : porta do container
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      db:
+        # So sobe a API quando o Postgres responder
+        condition: service_healthy
+    networks:
+      - geladeira-net
+
+networks:
+  geladeira-net:
+    name: geladeira-net
+    driver: bridge
+
+volumes:
+  geladeira-dados:
+    name: geladeira-dados
