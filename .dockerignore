@@ -1,0 +1,9 @@
+# So a pasta api/ (pom.xml e src/) entra no build da imagem
+.git
+.env
+*.md
+docs/
+azure/
+api/target/
+api/.idea/
+api/.vscode/
