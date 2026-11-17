@@ -1,0 +1,17 @@
+#cloud-config
+# Executado uma unica vez, no primeiro boot da VM (enviado pelo criar-vm.sh).
+# Instala Docker Engine + plugin Compose + Git e libera o Docker para o azureuser.
+
+package_update: true
+packages:
+  - git
+  - curl
+  - ca-certificates
+
+runcmd:
+  - curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+  - sh /tmp/get-docker.sh
+  - usermod -aG docker azureuser
+  - systemctl enable --now docker
+  - timedatectl set-timezone America/Sao_Paulo
+  - [sh, -c, 'echo "Docker instalado pelo cloud-init" > /var/log/geladeira-setup.log']
