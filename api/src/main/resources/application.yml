@@ -1,0 +1,104 @@
+spring:
+  application:
+    name: geladeira-solidaria-api
+
+  # Banco padrao: PostgreSQL. As credenciais vem de variaveis de ambiente.
+  # Os valores depois do ":" sao os do docker-compose.yml local (nao sao senhas reais).
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/geladeira}
+    username: ${DB_USERNAME:geladeira}
+    password: ${DB_PASSWORD:geladeira_dev}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate          # quem cria as tabelas e o Flyway
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  cache:
+    type: simple
+    cache-names: categorias,geladeiras
+
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: America/Sao_Paulo
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+
+# ---------------------------------------------------------------- JWT
+app:
+  jwt:
+    # Em producao, defina JWT_SECRET (minimo 32 caracteres).
+    # O valor abaixo existe so para rodar localmente.
+    secret: ${JWT_SECRET:dev-only-troque-este-segredo-geladeira-solidaria-2026}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
+  cors:
+    # Origens liberadas para o app mobile/web. "*" = qualquer origem (bom para o emulador).
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
+  regras:
+    temperatura-maxima-c: 8.0      # acima disso a geladeira esta fora do limite seguro
+    ocupacao-alta-pct: 90          # >= 90% de ocupacao gera alerta de capacidade
+    ocupacao-baixa-pct: 20         # <= 20% de ocupacao gera alerta de estoque baixo
+    sensor-sem-sinal-minutos: 60   # sem leitura ha mais tempo que isso = sensor sem sinal
+
+# ---------------------------------------------------------------- Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      roles: ADMIN
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+    build:
+      enabled: true
+
+info:
+  app:
+    nome: Geladeira Solidaria Inteligente - API
+    descricao: Rede de geladeiras comunitarias de doacao de alimentos monitoradas por sensores IoT
+    projeto: Global Solution 2026/2 - CitizenTech - FIAP
+    ods: "2 (Fome zero), 3 (Saude e bem-estar), 10 (Reducao das desigualdades), 11 (Cidades sustentaveis)"
+
+# ---------------------------------------------------------------- Swagger
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    persist-authorization: true
+  api-docs:
+    path: /v3/api-docs
+
+---
+# Perfil de demonstracao: banco H2 em memoria, sem precisar de Docker.
+# Rode com:  ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
+spring:
+  config:
+    activate:
+      on-profile: h2
+  datasource:
+    url: jdbc:h2:mem:geladeira;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console

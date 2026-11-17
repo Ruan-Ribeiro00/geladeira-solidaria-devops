@@ -1,0 +1,4 @@
+# Mantem o mvnw com final de linha Unix mesmo quando commitado no Windows
+mvnw text eol=lf
+*.cmd text eol=crlf
+*.sh text eol=lf

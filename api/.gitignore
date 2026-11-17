@@ -1,0 +1,23 @@
+# Build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Segredos
+.env
+*.env
+!.env.example
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.sts4-cache/
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
